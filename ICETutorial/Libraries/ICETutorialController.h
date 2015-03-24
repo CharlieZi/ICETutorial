@@ -16,7 +16,7 @@
 #define TUTORIAL_TITLE_LINES_NUMBER             1
 #define TUTORIAL_TITLE_OFFSET                   180
 #define TUTORIAL_SUB_TITLE_FONT                 [UIFont fontWithName:@"Helvetica" size:15.0f]
-#define TUTORIAL_SUB_TITLE_LINES_NUMBER         2
+#define TUTORIAL_SUB_TITLE_LINES_NUMBER         3
 #define TUTORIAL_SUB_TITLE_OFFSET               150
 
 // Scrolling state.
@@ -33,6 +33,7 @@ typedef void (^ButtonBlock)(UIButton *button);
 
 @property (nonatomic, assign) BOOL autoScrollEnabled;
 @property (nonatomic, weak) id<ICETutorialControllerDelegate> delegate;
+@property (nonatomic, assign) NSInteger currentPageIndex;
 
 // Inits.
 - (instancetype)initWithPages:(NSArray *)pages;
@@ -49,6 +50,7 @@ typedef void (^ButtonBlock)(UIButton *button);
 
 // State.
 - (ScrollingState)getCurrentState;
+- (void)scrollToNextPageIndex:(NSUInteger)nextPageIndex;
 
 @end
 

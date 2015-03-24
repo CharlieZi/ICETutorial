@@ -20,7 +20,6 @@
 
 @property (nonatomic, assign) ScrollingState currentState;
 @property (nonatomic, strong) NSArray *pages;
-@property (nonatomic, assign) NSInteger currentPageIndex;
 @property (nonatomic, assign) NSInteger nextPageIndex;
 
 @end
@@ -81,13 +80,13 @@
     [self.scrollView setDelegate:self];
     [self.scrollView setPagingEnabled:YES];
     [self.scrollView setContentSize:CGSizeMake([self numberOfPages] * self.view.frame.size.width,
-                                                self.scrollView.contentSize.height)];
-
+                                               self.scrollView.contentSize.height)];
+    
     // Title.
     [self.overlayTitle setTextColor:[UIColor whiteColor]];
-    [self.overlayTitle setFont:[UIFont fontWithName:@"Helvetica-Bold" size:32.0]];
+    [self.overlayTitle setFont:[UIFont fontWithName:@"Nexa Bold" size:32.0]];
     [self.overlayTitle setTextAlignment:NSTextAlignmentCenter];
-
+    
     // PageControl configuration.
     [self.pageControl setNumberOfPages:[self numberOfPages]];
     [self.pageControl setCurrentPage:0];
@@ -95,18 +94,29 @@
                          action:@selector(didClickOnPageControl:)
                forControlEvents:UIControlEventValueChanged];
     
+    UIColor *customOrange = [UIColor colorWithRed:(244/255.0f) green:(138/255.0f) blue:(103/255.0f) alpha:1.0];
+    
     // UIButtons.
-    [self.leftButton setBackgroundColor:[UIColor darkGrayColor]];
-    [self.rightButton setBackgroundColor:[UIColor darkGrayColor]];
-    [self.leftButton setTitle:@"Button 1" forState:UIControlStateNormal];
-    [self.rightButton setTitle:@"Button 2" forState:UIControlStateNormal];
+    [self.leftButton setBackgroundColor:customOrange];
+    [self.leftButton.layer setCornerRadius:6.0];
+    [self.leftButton setContentVerticalAlignment:UIControlContentVerticalAlignmentFill];
+    [self.leftButton setTitle:NSLocalizedString(@"Next", nil) forState:UIControlStateNormal];
+    [self.leftButton setShowsTouchWhenHighlighted:YES];
+    [self.leftButton.titleLabel setFont:[UIFont fontWithName:@"Nexa Light" size:17.0]];
     [self.leftButton addTarget:self
                         action:@selector(didClickOnButton1:)
               forControlEvents:UIControlEventTouchUpInside];
+    
+    [self.rightButton setBackgroundColor:customOrange];
+    [self.rightButton.layer setCornerRadius:6.0];
+    [self.rightButton setContentVerticalAlignment:UIControlContentVerticalAlignmentFill];
+    [self.rightButton setTitle:NSLocalizedString(@"LoginViewController_btnLogin", nil) forState:UIControlStateNormal];
+    [self.rightButton setShowsTouchWhenHighlighted:YES];
+    [self.rightButton.titleLabel setFont:[UIFont fontWithName:@"Nexa Light" size:17.0]];
     [self.rightButton addTarget:self
                          action:@selector(didClickOnButton2:)
                forControlEvents:UIControlEventTouchUpInside];
-
+    
     [self.view addSubview:self.frontLayerView];
     [self.view addSubview:self.backLayerView];
     [self.view addSubview:self.gradientView];
@@ -122,15 +132,24 @@
 #pragma mark - Constraints management.
 - (void)addAllConstraints {
     [self.frontLayerView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
-	[self.backLayerView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
+    [self.backLayerView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
     
     NSDictionary *views = NSDictionaryOfVariableBindings(_overlayTitle, _leftButton, _rightButton, _pageControl, _gradientView);
     NSMutableArray *constraints = [NSMutableArray array];
     
     // Overlay title.
     [self.overlayTitle setTranslatesAutoresizingMaskIntoConstraints:NO];
-    [constraints addObject:@"V:|-116-[_overlayTitle(==50)]"];
-    [constraints addObject:@"H:|-54-[_overlayTitle(==212)]-|"];
+    [constraints addObject:@"V:|-85-[_overlayTitle(==50)]"];
+    //    [constraints addObject:@"H:|-0-[_overlayTitle(>=212)]-0-|"];
+    
+    [self.view addConstraint:
+     [NSLayoutConstraint constraintWithItem:_overlayTitle
+                                  attribute:NSLayoutAttributeCenterX
+                                  relatedBy:NSLayoutRelationEqual
+                                     toItem:self.view
+                                  attribute:NSLayoutAttributeCenterX
+                                 multiplier:1
+                                   constant:0]];
     
     // Buttons.
     [self.leftButton setTranslatesAutoresizingMaskIntoConstraints:NO];
@@ -138,16 +157,24 @@
     [constraints addObject:@"V:[_leftButton(==36)]-20-|"];
     [constraints addObject:@"V:[_rightButton(==36)]-20-|"];
     [constraints addObject:@"H:|-20-[_leftButton(==_rightButton)]-20-[_rightButton(>=130)]-20-|"];
-
+    
     // PageControl.
     [self.pageControl setTranslatesAutoresizingMaskIntoConstraints:NO];
     [constraints addObject:@"V:[_pageControl(==32)]-60-|"];
-    [constraints addObject:@"H:|-140-[_pageControl(==40)]"];
-
+    //    [constraints addObject:@"H:|[_pageControl(==40)]|"];
+    
+    [self.view addConstraint:
+     [NSLayoutConstraint constraintWithItem:_pageControl
+                                  attribute:NSLayoutAttributeCenterX
+                                  relatedBy:NSLayoutRelationEqual
+                                     toItem:self.view
+                                  attribute:NSLayoutAttributeCenterX
+                                 multiplier:1
+                                   constant:0]];
     // GradientView.
     [self.gradientView setTranslatesAutoresizingMaskIntoConstraints:NO];
     [constraints addObject:@"V:[_gradientView(==200)]-0-|"];
-    [constraints addObject:@"H:|-0-[_gradientView(==320)]-0-|"];
+    [constraints addObject:@"H:|-0-[_gradientView(>=320)]-0-|"];
     
     // Set constraints.
     for (NSString *string in constraints) {
@@ -173,7 +200,7 @@
 
 - (IBAction)didClickOnPageControl:(UIPageControl *)sender {
     [self stopScrolling];
-
+    
     // Make the scrollView animation.
     [self scrollToNextPageIndex:sender.currentPage];
 }
@@ -228,7 +255,7 @@
 // Call the next animation after X seconds.
 - (void)autoScrollToNextPage {
     ICETutorialPage *page = self.pages[self.currentPageIndex];
-
+    
     if (self.autoScrollEnabled) {
         [self performSelector:@selector(animateScrolling)
                    withObject:nil
@@ -240,7 +267,7 @@
     // Make the scrollView animation.
     [self.scrollView setContentOffset:CGPointMake(nextPageIndex * self.view.frame.size.width,0)
                              animated:YES];
-
+    
     // Set the PageControl on the right page.
     [self.pageControl setCurrentPage:nextPageIndex];
 }
@@ -266,12 +293,12 @@
 // Setup the Title Label.
 - (void)setOverlayTitle {
     // ...or change by an UIImageView if you need it.
-    [self.overlayTitle setText:@"Welcome"];
+    [self.overlayTitle setText:NSLocalizedString(@"Welcome", nil)];
 }
 
 // Setup the Title/Subtitle style/text.
 - (void)setOverlayTexts {
-    int index = 0;    
+    int index = 0;
     for (ICETutorialPage *page in self.pages) {
         // SubTitles.
         if ([[[page title] text] length]) {
@@ -294,21 +321,21 @@
                   commonStyle:(ICETutorialLabelStyle *)commonStyle
                         index:(NSUInteger)index {
     // SubTitles.
-    UILabel *overlayLabel = [[UILabel alloc] initWithFrame:CGRectMake((index * self.view.frame.size.width),
+    UILabel *overlayLabel = [[UILabel alloc] initWithFrame:CGRectMake((index * self.view.frame.size.width) + 10,
                                                                       self.view.frame.size.height - [commonStyle offset],
-                                                                      self.view.frame.size.width,
-                                                                      TUTORIAL_LABEL_HEIGHT)];
+                                                                      self.view.frame.size.width - 20,
+                                                                      TUTORIAL_LABEL_HEIGHT + 10)];
     [overlayLabel setNumberOfLines:[commonStyle linesNumber]];
     [overlayLabel setBackgroundColor:[UIColor clearColor]];
-    [overlayLabel setTextAlignment:NSTextAlignmentCenter];  
-
+    [overlayLabel setTextAlignment:NSTextAlignmentCenter];
+    
     // Datas and style.
     [overlayLabel setText:[style text]];
     [style font] ? [overlayLabel setFont:[style font]] :
-                   [overlayLabel setFont:[commonStyle font]];
+    [overlayLabel setFont:[commonStyle font]];
     [style textColor] ? [overlayLabel setTextColor:[style textColor]] :
-                        [overlayLabel setTextColor:[commonStyle textColor]];
-  
+    [overlayLabel setTextColor:[commonStyle textColor]];
+    
     [self.scrollView addSubview:overlayLabel];
 }
 
@@ -328,7 +355,7 @@
     if (index >= [self.pages count]) {
         [imageView setImage:nil];
         return;
-    } 
+    }
     
     [imageView setImage:[UIImage imageNamed:[self.pages[index] pictureName]]];
 }
@@ -405,7 +432,7 @@
     
     // Switch pictures, and imageView alpha.
     if (nextPage != self.currentPageIndex ||
-       ((nextPage == self.currentPageIndex) && (0.0 < offset) && (offset < 1.0)))
+        ((nextPage == self.currentPageIndex) && (0.0 < offset) && (offset < 1.0)))
         [self setLayersPicturesWithIndex:nextPage];
     
     // Invert alpha for the front picture.
@@ -443,7 +470,7 @@
             [self.delegate tutorialControllerDidReachLastPage:self];
         }
     }
-
+    
     // Animate.
     [self disolveBackgroundWithContentOffset:scrollingPosition];
 }
